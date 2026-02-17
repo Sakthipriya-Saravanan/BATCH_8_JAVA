@@ -1,18 +1,15 @@
-# Use Java 17
-FROM eclipse-temurin:17-jdk-alpine
-
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy all files
-COPY . .
+COPY pom.xml .
+COPY src ./src
 
-# Build the project
-RUN chmod +x mvnw
-RUN ./mvnw clean package -DskipTests
+RUN mvn -DskipTests clean package
 
-# Expose port
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+
+COPY --from=build /app/target/*.jar app.jar
+
 EXPOSE 8080
-
-# Run the jar
-CMD ["sh", "-c", "java -jar target/*.jar"]
-
+CMD ["sh", "-c", "java -jar app.jar"]
